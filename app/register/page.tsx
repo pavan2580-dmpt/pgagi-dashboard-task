@@ -21,18 +21,36 @@ export default function RegisterPage() {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate registration
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push("/dashboard")
-    }, 1500)
-  }
-
+    e.preventDefault();
+    setIsLoading(true);
+  
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        alert(data.error || "Registration failed");
+        setIsLoading(false);
+        return;
+      }  
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+  
+      alert("Registration successful!");
+      router.push("/dashboard");
+    } catch (error) {
+      alert("Something went wrong. Try again!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-900 to-indigo-800 p-4">
       <div className="w-full max-w-md overflow-hidden rounded-2xl backdrop-blur-lg bg-white/10 shadow-xl">

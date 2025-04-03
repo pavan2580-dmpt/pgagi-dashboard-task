@@ -6,6 +6,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,14 +23,36 @@ export default function LoginPage() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    setTimeout(() => {
-      setIsLoading(false)
-      router.push("/dashboard")
-    }, 1500)
-  }
+    e.preventDefault();
+    setIsLoading(true);
+  
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        alert(data.error || "Login failed");
+        setIsLoading(false);
+        return;
+      }
+  
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+  
+      toast({ description: "Login successful!", variant: "default" });
+      router.push("/dashboard");
+    } catch (error) {
+      alert("Something went wrong. Try again!");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-4">
